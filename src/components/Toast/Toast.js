@@ -1,15 +1,15 @@
-import React from 'react';
+import React from "react";
 import {
   AlertOctagon,
   AlertTriangle,
   CheckCircle,
   Info,
   X,
-} from 'react-feather';
+} from "react-feather";
 
-import VisuallyHidden from '../VisuallyHidden';
-
-import styles from './Toast.module.css';
+import styles from "./Toast.module.css";
+import { VARIANT_OPTIONS } from "../../constants";
+import VisuallyHidden from "../VisuallyHidden/index";
 
 const ICONS_BY_VARIANT = {
   notice: Info,
@@ -18,21 +18,48 @@ const ICONS_BY_VARIANT = {
   error: AlertOctagon,
 };
 
-function Toast() {
+function Toast({ variant, onClose, children }) {
+  if (typeof variant !== "string") {
+    throw new Error("Variant may only be of type string");
+  }
+
+  if (!VARIANT_OPTIONS.includes(variant)) {
+    throw new Error(
+      `A not valid variant for Toast has been chosen, allowed variants are: ${VARIANT_OPTIONS}`
+    );
+  }
+
+  const closeButtonRef = React.useRef();
+
+  React.useEffect(() => {
+    closeButtonRef.current.focus();
+  }, []);
+
   return (
-    <div className={`${styles.toast} ${styles.notice}`}>
+    <div className={`${styles.toast} ${styles[variant]}`}>
       <div className={styles.iconContainer}>
-        <Info size={24} />
+        <Icon variant={variant} size={24} />
       </div>
       <p className={styles.content}>
-        16 photos have been uploaded
+        {children}
+        <VisuallyHidden> {variant} -</VisuallyHidden>
       </p>
-      <button className={styles.closeButton}>
+      <button
+        ref={closeButtonRef}
+        className={styles.closeButton}
+        aria-label="Dismiss message"
+        aria-live="off"
+        onClick={onClose}
+      >
         <X size={24} />
-        <VisuallyHidden>Dismiss message</VisuallyHidden>
       </button>
     </div>
   );
+}
+
+function Icon({ variant, ...delegated }) {
+  const IconByVariant = ICONS_BY_VARIANT[variant];
+  return <IconByVariant {...delegated} />;
 }
 
 export default Toast;
